@@ -252,6 +252,7 @@ local function fillBatteryPanel(widget)
             battery.cellCount = value
             requestWidgetRebuild(widget)
         end)
+        field:enableInstantChange(false)
 
         field = form.addNumberField(line, {
             x = offsetX + header1Width + header2Width,
@@ -412,6 +413,20 @@ local function fillSettingsPanel(widget)
     end)
     field:suffix("s")
 
+    line = widget.panels.settings:addLine("0% Remaining Haptic Warning")
+    form.addBooleanField(line, nil, function()
+        return widget.config.remainingCalloutHapticEnabled
+    end, function(newValue)
+        widget.config.remainingCalloutHapticEnabled = newValue
+    end)
+
+    line = widget.panels.settings:addLine("0% Remaining Haptic Pattern")
+    form.addChoiceField(line, nil, HapticPatterns, function()
+        return widget.config.remainingCalloutHapticPattern
+    end, function(newValue)
+        widget.config.remainingCalloutHapticPattern = newValue
+    end)
+
     -- Create field to enable/disable battery voltage checking on connect
     line = widget.panels.settings:addLine("Voltage Check Enabled")
     field = form.addBooleanField(line, nil, function()
@@ -429,14 +444,14 @@ local function fillSettingsPanel(widget)
     field:decimals(2)
     field:suffix("V")
 
-    line = widget.panels.settings:addLine("Haptic Warnings")
+    line = widget.panels.settings:addLine("Voltage Check Haptic Warning")
     form.addBooleanField(line, nil, function()
         return widget.config.voltageCheckHapticEnabled
     end, function(newValue)
         widget.config.voltageCheckHapticEnabled = newValue
     end)
 
-    line = widget.panels.settings:addLine("Haptic Pattern")
+    line = widget.panels.settings:addLine("Voltage Check Haptic Pattern")
     form.addChoiceField(line, nil, HapticPatterns, function()
         return widget.config.voltageCheckHapticPattern
     end, function(newValue)
@@ -965,7 +980,7 @@ local function reconcileConsumption(widget)
                     system.playFile(percentageFile)
                     system.playFile("sound/percent.wav")
 
-                    if remainingPercentage == 0 and widget.config.remainingCalloutHapticEnabled and
+                    if roundedPercent == 0 and widget.config.remainingCalloutHapticEnabled and
                         widget.config.remainingCalloutHapticPattern then
                         system.playHaptic(HapticPatterns[widget.config.remainingCalloutHapticPattern][1])
                     end
